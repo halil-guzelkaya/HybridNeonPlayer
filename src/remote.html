@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#05070d">
+  <title>Hybrid Neon Remote</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #05070d;
+      --surface: #0f1220;
+      --card: #1a1e32;
+      --accent: #ff1744;
+      --accent-glow: rgba(255, 23, 68, .45);
+      --text: #f0f0f0;
+      --muted: rgba(255,255,255,.45);
+      --border: rgba(255,255,255,.06);
+      --radius: 18px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    [data-accent="cyan"]   { --accent: #00e5ff; --accent-glow: rgba(0,229,255,.4); }
+    [data-accent="purple"] { --accent: #d500f9; --accent-glow: rgba(213,0,249,.4); }
+    [data-accent="pink"]   { --accent: #ff4081; --accent-glow: rgba(255,64,129,.4); }
+    [data-accent="green"]  { --accent: #00e676; --accent-glow: rgba(0,230,118,.4); }
+    [data-accent="red"]    { --accent: #ff1744; --accent-glow: rgba(255,23,68,.45); }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom));
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .connecting-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: var(--bg);
+      z-index: 100;
+      transition: opacity .4s, visibility .4s;
+    }
+
+    .connecting-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .connecting-spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .connecting-screen p { color: var(--muted); font-size: 14px; }
+
+    .cover-wrap {
+      width: min(72vw, 340px);
+      aspect-ratio: 1;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.5), 0 0 60px var(--accent-glow);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .cover-wrap .cover-icon {
+      font-size: 72px;
+      opacity: .25;
+      transition: opacity .3s;
+    }
+
+    .cover-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .cover-wrap.has-cover img { display: block; }
+    .cover-wrap.has-cover .cover-icon { display: none; }
+
+    .track-info {
+      text-align: center;
+      width: 100%;
+      max-width: 380px;
+      margin-bottom: 32px;
+    }
+
+    .track-title {
+      font-size: 20px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 6px;
+    }
+
+    .track-sub {
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .seek-section {
+      width: 100%;
+      max-width: 380px;
+      margin-bottom: 28px;
+    }
+
+    .seekbar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,.08);
+      border-radius: 3px;
+      cursor: pointer;
+      position: relative;
+      margin-bottom: 8px;
+      padding: 14px 0;
+      margin-top: -14px;
+      background-clip: content-box;
+      touch-action: none;
+    }
+
+    .seekbar .seek-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      width: 0%;
+      transition: width .15s linear;
+      box-shadow: 0 0 8px var(--accent-glow);
+      position: relative;
+    }
+
+    .seekbar .seek-fill::after {
+      content: "";
+      position: absolute;
+      right: -6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    .seekbar:active .seek-fill::after { opacity: 1; }
+
+    .seek-times {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .controls-main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .ctrl-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
+    }
+
+    .ctrl-btn:active { transform: scale(.92); }
+    .ctrl-btn:hover { background: rgba(255,255,255,.1); }
+    .ctrl-btn svg { width: 24px; height: 24px; fill: currentColor; }
+
+    .play-btn {
+      width: 72px;
+      height: 72px;
+      background: var(--accent);
+      box-shadow: 0 0 30px var(--accent-glow);
+    }
+
+    .play-btn:active { transform: scale(.9); }
+    .play-btn svg { width: 32px; height: 32px; }
+
+    .volume-section {
+      width: 100%;
+      max-width: 300px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .vol-icon {
+      flex-shrink: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+    }
+
+    .vol-icon svg { width: 20px; height: 20px; fill: var(--muted); }
+
+    .volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,.08);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+      cursor: pointer;
+    }
+
+    .volume-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border: none;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+      cursor: pointer;
+    }
+
+    .extra-row {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .extra-btn {
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .extra-btn:active { background: rgba(255,255,255,.1); }
+    .extra-btn.active { border-color: var(--accent); color: var(--accent); }
+
+    .speed-badge {
+      font-size: 12px;
+      background: var(--accent);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+
+    .disconnected-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5,7,13,.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 200;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .3s, visibility .3s;
+    }
+
+    .disconnected-overlay.show { opacity: 1; visibility: visible; }
+    .disconnected-overlay .disc-icon { font-size: 48px; opacity: .3; }
+    .disconnected-overlay p { color: var(--muted); font-size: 14px; }
+    .disconnected-overlay button {
+      margin-top: 8px;
+      padding: 10px 28px;
+      border-radius: 12px;
+      border: 1px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    @media (max-width: 380px) {
+      .cover-wrap { width: 65vw; }
+      .track-title { font-size: 17px; }
+      .controls-main { gap: 18px; }
+      .play-btn { width: 64px; height: 64px; }
+      .ctrl-btn { width: 46px; height: 46px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="connecting-screen" id="connectingScreen">
+    <div class="connecting-spinner"></div>
+    <p id="connectingText">Connecting to Hybrid Neon Player...</p>
+  </div>
+
+  <div class="disconnected-overlay" id="disconnectedOverlay">
+    <div class="disc-icon">📡</div>
+    <p id="disconnectedText">Connection lost</p>
+    <button id="reconnectBtn">Reconnect</button>
+  </div>
+
+  <div class="cover-wrap" id="coverWrap">
+    <span class="cover-icon">♪</span>
+    <img id="coverImg" src="" alt="" />
+  </div>
+
+  <div class="track-info">
+    <div class="track-title" id="trackTitle">No media</div>
+    <div class="track-sub" id="trackSub">Hybrid Neon Player</div>
+  </div>
+
+  <div class="seek-section">
+    <div class="seekbar" id="seekbar">
+      <div class="seek-fill" id="seekFill"></div>
+    </div>
+    <div class="seek-times">
+      <span id="currentTime">00:00</span>
+      <span id="duration">00:00</span>
+    </div>
+  </div>
+
+  <div class="controls-main">
+    <button class="ctrl-btn" id="prevBtn">
+      <svg viewBox="0 0 24 24"><polygon points="12,5 3,12 12,19"/><rect x="14" y="5" width="3" height="14" rx="1"/></svg>
+    </button>
+    <button class="ctrl-btn" id="backBtn">
+      <svg viewBox="0 0 24 24"><path d="M12.5 3C7.81 3 4 6.81 4 11.5S7.81 20 12.5 20c3.24 0 6.07-1.85 7.46-4.54l-1.99-1.12C16.84 16.38 14.8 18 12.5 18 8.92 18 6 15.08 6 11.5S8.92 5 12.5 5c1.86 0 3.55.79 4.73 2.04L14 10h7V3l-2.47 2.52C16.53 3.95 14.62 3 12.5 3z"/></svg>
+      <span style="position:absolute;font-size:9px;font-weight:700;margin-top:1px">10</span>
+    </button>
+    <button class="ctrl-btn play-btn" id="playBtn">
+      <svg viewBox="0 0 24 24" id="playIcon"><polygon points="8,4 20,12 8,20"/></svg>
+    </button>
+    <button class="ctrl-btn" id="forwardBtn">
+      <svg viewBox="0 0 24 24"><path d="M11.5 3C16.19 3 20 6.81 20 11.5S16.19 20 11.5 20c-3.24 0-6.07-1.85-7.46-4.54l1.99-1.12C7.16 16.38 9.2 18 11.5 18c3.58 0 6.5-3.08 6.5-7S15.08 4 11.5 4C9.64 4 7.95 4.79 6.77 6.04L10 10H3V3l2.47 2.52C7.47 3.95 9.38 3 11.5 3z"/></svg>
+      <span style="position:absolute;font-size:9px;font-weight:700;margin-top:1px">10</span>
+    </button>
+    <button class="ctrl-btn" id="nextBtn">
+      <svg viewBox="0 0 24 24"><polygon points="12,5 21,12 12,19"/><rect x="7" y="5" width="3" height="14" rx="1"/></svg>
+    </button>
+  </div>
+
+  <div class="volume-section">
+    <div class="vol-icon" id="muteBtn">
+      <svg viewBox="0 0 24 24" id="volIcon"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63z"/></svg>
+    </div>
+    <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80" />
+  </div>
+
+  <div class="extra-row">
+    <button class="extra-btn" id="speedBtn">
+      <span>1x</span>
+    </button>
+    <button class="extra-btn" id="shuffleBtn">
+      <span>Shuffle</span>
+    </button>
+    <button class="extra-btn" id="fullscreenBtn">
+      <span>Fullscreen</span>
+    </button>
+  </div>
+
+  <script>
+    let ws;
+    let reconnectTimer;
+    const params = new URLSearchParams(location.search);
+    const port = params.get("port") || "9120";
+
+    const connectingScreen = document.getElementById("connectingScreen");
+    const disconnectedOverlay = document.getElementById("disconnectedOverlay");
+    const reconnectBtn = document.getElementById("reconnectBtn");
+
+    const coverWrap = document.getElementById("coverWrap");
+    const coverImg = document.getElementById("coverImg");
+    const trackTitle = document.getElementById("trackTitle");
+    const trackSub = document.getElementById("trackSub");
+    const seekFill = document.getElementById("seekFill");
+    const currentTimeEl = document.getElementById("currentTime");
+    const durationEl = document.getElementById("duration");
+    const playIcon = document.getElementById("playIcon");
+    const seekbar = document.getElementById("seekbar");
+    const volumeSlider = document.getElementById("volumeSlider");
+
+    let lastDuration = 0;
+    let seekDragging = false;
+    let cmdQueue = [];
+    let cmdTimer = null;
+
+    function send(msg) {
+      if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg));
+    }
+
+    function flushQueue() {
+      if (cmdQueue.length === 0) { cmdTimer = null; return; }
+      const batch = cmdQueue.splice(0);
+      const last = batch[batch.length - 1];
+      send(last);
+      cmdTimer = setTimeout(flushQueue, 50);
+    }
+
+    function queueSend(msg) {
+      cmdQueue.push(msg);
+      if (!cmdTimer) cmdTimer = setTimeout(flushQueue, 0);
+    }
+
+    function connect() {
+      const host = location.hostname;
+      ws = new WebSocket(`ws://${host}:${port}/ws`);
+
+      ws.onopen = () => {
+        connectingScreen.classList.add("hidden");
+        disconnectedOverlay.classList.remove("show");
+        clearTimeout(reconnectTimer);
+      };
+
+      ws.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.type === "state") updateUI(data);
+        } catch {}
+      };
+
+      ws.onclose = () => {
+        disconnectedOverlay.classList.add("show");
+        reconnectTimer = setTimeout(connect, 2000);
+      };
+
+      ws.onerror = () => ws.close();
+    }
+
+    reconnectBtn.onclick = () => {
+      disconnectedOverlay.classList.remove("show");
+      connect();
+    };
+
+    function updateUI(s) {
+      trackTitle.textContent = s.title || "No media";
+      trackSub.textContent = s.sub || "Hybrid Neon Player";
+
+      if (s.thumb) {
+        coverImg.src = s.thumb;
+        coverWrap.classList.add("has-cover");
+      } else {
+        coverWrap.classList.remove("has-cover");
+      }
+
+      lastDuration = s.duration || 0;
+
+      if (!seekDragging) {
+        const pct = s.duration > 0 ? (s.currentTime / s.duration) * 100 : 0;
+        seekFill.style.width = pct + "%";
+        currentTimeEl.textContent = formatTime(s.currentTime || 0);
+      }
+      durationEl.textContent = formatTime(s.duration || 0);
+
+      playIcon.innerHTML = s.playing
+        ? '<rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/>'
+        : '<polygon points="8,4 20,12 8,20"/>';
+
+      if (typeof s.volume === "number") volumeSlider.value = Math.round(s.volume * 100);
+
+      if (s.speed) document.getElementById("speedBtn").querySelector("span").textContent = s.speed + "x";
+
+      if (s.muted) {
+        document.getElementById("volIcon").innerHTML = '<path d="M16.5 12A4.5 4.5 0 0 0 14 8.3v1.5l2.3 2.3c.06-.16.1-.33.1-.5z"/><path d="M19 12c0 1.6-.5 3.1-1.4 4.3l1.4 1.4c1.2-1.6 1.9-3.6 1.9-5.7s-.7-4.1-1.9-5.7l-1.4 1.4c.9 1.2 1.4 2.7 1.4 4.3z"/><path d="M4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 0 0 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+      } else {
+        document.getElementById("volIcon").innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63z"/><path d="M19 12c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.8 8.8 0 0 0 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71z"/>';
+      }
+
+      if (s.shuffle) {
+        document.getElementById("shuffleBtn").classList.add("active");
+      } else {
+        document.getElementById("shuffleBtn").classList.remove("active");
+      }
+    }
+
+    function formatTime(sec) {
+      if (!sec || !isFinite(sec)) return "00:00";
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+    }
+
+    document.getElementById("playBtn").onclick = () => send({ cmd: "toggle-play" });
+    document.getElementById("prevBtn").onclick = () => send({ cmd: "prev" });
+    document.getElementById("nextBtn").onclick = () => send({ cmd: "next" });
+    document.getElementById("backBtn").onclick = () => send({ cmd: "seek-back" });
+    document.getElementById("forwardBtn").onclick = () => send({ cmd: "seek-forward" });
+    document.getElementById("muteBtn").onclick = () => send({ cmd: "mute" });
+    document.getElementById("speedBtn").onclick = () => send({ cmd: "speed" });
+    document.getElementById("shuffleBtn").onclick = () => send({ cmd: "shuffle" });
+    document.getElementById("fullscreenBtn").onclick = () => send({ cmd: "fullscreen" });
+
+    seekbar.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      seekDragging = true;
+      seekFromEvent(e);
+    }, { passive: false });
+    seekbar.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+      if (seekDragging) seekFromEvent(e);
+    }, { passive: false });
+    seekbar.addEventListener("touchend", (e) => {
+      if (seekDragging) seekFromEvent(e);
+      seekDragging = false;
+    });
+    seekbar.addEventListener("click", seekFromEvent);
+
+    function seekFromEvent(e) {
+      const rect = seekbar.getBoundingClientRect();
+      const touch = e.touches?.[0] || e.changedTouches?.[0] || e;
+      if (!touch) return;
+      const pct = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+      seekFill.style.width = (pct * 100) + "%";
+      currentTimeEl.textContent = formatTime(pct * lastDuration);
+      queueSend({ cmd: "seek", pct });
+    }
+
+    volumeSlider.oninput = () => {
+      send({ cmd: "volume", value: Number(volumeSlider.value) / 100 });
+    };
+
+    connect();
+  </script>
+</body>
+</html>

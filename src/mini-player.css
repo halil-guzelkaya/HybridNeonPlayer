@@ -1,0 +1,428 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+}
+
+body {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 10px;
+}
+
+/* THEME COLORS */
+body[data-theme="dark-neon"]      { --mbg: #0a0c14; --msurface: #0f1220; --mtext: #fff; --mmuted: rgba(255,255,255,.55); --mborder: rgba(255,255,255,.16); }
+body[data-theme="midnight-blue"]  { --mbg: #0b1628; --msurface: #162544; --mtext: #e4ecff; --mmuted: rgba(180,200,240,.5); --mborder: rgba(100,160,255,.18); }
+body[data-theme="cyber-punk"]     { --mbg: #0a0014; --msurface: #1a0030; --mtext: #f0e0ff; --mmuted: rgba(200,160,255,.5); --mborder: rgba(200,0,255,.18); }
+body[data-theme="aurora-green"]   { --mbg: #041210; --msurface: #0a2a22; --mtext: #e0fff4; --mmuted: rgba(160,220,200,.5); --mborder: rgba(16,185,129,.18); }
+body[data-theme="sunset-red"]     { --mbg: #140808; --msurface: #2a1212; --mtext: #ffe4e4; --mmuted: rgba(255,180,180,.5); --mborder: rgba(229,9,20,.18); }
+body[data-theme="pure-light"]     { --mbg: #e8eaed; --msurface: #fff; --mtext: #1a1a2e; --mmuted: rgba(0,0,0,.45); --mborder: rgba(0,0,0,.12); }
+
+/* ANA BAR */
+.mini-shell {
+  width: 744px;
+  height: 64px;
+
+  display: grid;
+  grid-template-columns: 50px 220px 1fr auto;
+  align-items: center;
+  gap: 12px;
+
+  padding: 8px 12px;
+  border-radius: 5px;
+  color: var(--mtext, white);
+
+  background:
+    radial-gradient(circle at 8% 50%, rgba(0,234,255,.15), transparent 28%),
+    radial-gradient(circle at 92% 50%, rgba(229,9,20,.12), transparent 30%),
+    var(--msurface, rgba(8, 10, 18, .92));
+
+  border: 1px solid var(--mborder, rgba(255,255,255,.16));
+
+  box-shadow: none;
+
+  backdrop-filter: blur(24px);
+  overflow: hidden;
+
+  /* KRİTİK: Shell drag olursa hover sadece butonlarda çalışır */
+  -webkit-app-region: no-drag;
+
+  transform: scale(.98);
+  transition:
+    height .22s ease,
+    transform .22s ease,
+    box-shadow .22s ease,
+    border-color .22s ease;
+}
+
+/* Hover JS class ile gelir */
+.mini-shell.expanded {
+  height: 92px;
+  transform: scale(1);
+  border-color: rgba(0,234,255,.36);
+  box-shadow: none;
+}
+
+.mini-shell.dragging {
+  transform: scale(.99);
+  opacity: .92;
+}
+
+/* SÜRÜKLEME ALANI: sadece kapak + yazı */
+.mini-art-wrap,
+.mini-info {
+  -webkit-app-region: drag;
+}
+
+/* Buton, progress, ses kesin tıklanabilir */
+.mini-center,
+.mini-progress,
+.mini-time-row,
+.mini-controls,
+.mini-controls button,
+.mini-volume,
+#miniMuteBtn,
+#miniVolumeSlider {
+  -webkit-app-region: no-drag !important;
+}
+
+/* SOL ICON */
+.mini-art-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-art {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+
+  display: grid;
+  place-items: center;
+
+  font-size: 22px;
+  font-weight: 900;
+
+  background:
+    radial-gradient(circle at top left, rgba(0,234,255,.35), transparent 50%),
+    linear-gradient(135deg, rgba(255,255,255,.15), rgba(255,255,255,.05));
+
+  background-size: cover;
+  background-position: center;
+
+  box-shadow: 0 0 16px rgba(0,234,255,.25);
+
+  transition:
+    transform .22s ease,
+    box-shadow .22s ease;
+}
+
+.mini-shell.expanded .mini-art {
+  transform: scale(1.1);
+  box-shadow:
+    0 0 24px rgba(0,234,255,.35),
+    0 0 18px rgba(229,9,20,.22);
+}
+
+/* ORTA TEXT */
+.mini-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform .22s ease;
+}
+
+.mini-shell.expanded .mini-info {
+  transform: translateY(6px);
+}
+
+.mini-kicker {
+  display: none;
+}
+
+.mini-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--mtext, white);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-sub {
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--mmuted, rgba(255,255,255,.6));
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* PROGRESS + TIME */
+.mini-center {
+  display: grid;
+  grid-template-rows: 8px 14px;
+  gap: 6px;
+  align-items: center;
+  transition: transform .22s ease;
+}
+
+.mini-shell.expanded .mini-center {
+  transform: translateY(6px);
+}
+
+.mini-progress {
+  height: 7px;
+  border-radius: 999px;
+  overflow: hidden;
+
+  background: var(--mborder, rgba(255,255,255,.18));
+  cursor: pointer;
+
+  transition:
+    height .22s ease,
+    box-shadow .22s ease;
+}
+
+.mini-shell.expanded .mini-progress {
+  height: 10px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.08),
+    0 0 16px rgba(0,234,255,.25);
+}
+
+#miniProgressFill {
+  width: 0%;
+  height: 100%;
+  border-radius: 999px;
+
+  background: linear-gradient(90deg, #00eaff, #e50914, #8b5cf6);
+  box-shadow: 0 0 12px rgba(0,234,255,.6);
+}
+
+.mini-time-row {
+  display: grid;
+  grid-template-columns: 46px 1fr 46px;
+  align-items: center;
+
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--mmuted, rgba(255,255,255,.7));
+
+  font-variant-numeric: tabular-nums;
+}
+
+#miniState {
+  text-align: center;
+  color: #00eaff;
+}
+
+#miniDuration {
+  text-align: right;
+}
+
+/* CONTROLS */
+.mini-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+  overflow: hidden;
+  transition: transform .22s ease;
+}
+
+.mini-shell.expanded .mini-controls {
+  transform: translateY(6px);
+}
+
+.mini-controls button {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  padding: 0;
+  display: grid;
+  place-items: center;
+
+  border: none;
+  color: var(--mtext, white);
+  cursor: pointer;
+  font-weight: 900;
+
+  background:
+    rgba(255,255,255,.09);
+
+  border: 1px solid var(--mborder, rgba(255,255,255,.12));
+
+  box-shadow:
+    0 4px 10px rgba(0,0,0,.2);
+
+  transition:
+    background .15s ease,
+    box-shadow .15s ease,
+    border-color .15s ease,
+    transform .15s ease;
+}
+
+/* Buton hover büyütmez, sadece renk değişir */
+.mini-controls button:hover {
+  background: rgba(255,255,255,.16);
+
+  box-shadow:
+    0 0 16px rgba(0,234,255,.3),
+    0 4px 12px rgba(0,0,0,.3);
+  transform: scale(1.08);
+}
+
+/* PLAY BUTTON */
+.mini-play {
+  width: 40px !important;
+
+  background: rgba(255,255,255,.10) !important;
+
+  box-shadow:
+    0 0 12px rgba(0,234,255,.25),
+    0 4px 12px rgba(0,0,0,.25) !important;
+}
+
+/* VOLUME */
+.mini-volume {
+  width: 90px;
+  height: 32px;
+
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--mborder, rgba(255,255,255,.08));
+}
+
+#miniMuteBtn {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  border-radius: 50% !important;
+
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#miniVolumeSlider {
+  width: 100%;
+  height: 4px;
+  accent-color: #00eaff;
+}
+
+/* ===== MINI PLAYER ULTRA PRO ===== */
+
+body {
+  padding-top: 8px !important;
+}
+
+.mini-shell {
+  width: 760px !important;
+  height: 66px !important;
+  border-radius: 18px !important;
+
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.02)),
+    radial-gradient(circle at 8% 50%, rgba(0,234,255,.15), transparent 30%),
+    radial-gradient(circle at 92% 50%, rgba(229,9,20,.12), transparent 34%),
+    var(--msurface, rgba(5, 7, 16, .82)) !important;
+
+  border: 1px solid var(--mborder, rgba(255,255,255,.20)) !important;
+  box-shadow: none !important;
+}
+
+.mini-shell.expanded {
+  height: 92px !important;
+  transform: scale(1.015) !important;
+  border-color: var(--mborder, rgba(0,234,255,.48)) !important;
+  box-shadow: none !important;
+}
+
+.mini-art {
+  border-radius: 16px !important;
+  box-shadow:
+    0 0 20px rgba(0,234,255,.35),
+    inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+
+.mini-title {
+  font-size: 14px !important;
+  letter-spacing: .2px;
+}
+
+.mini-sub {
+  font-size: 10.5px !important;
+}
+
+.mini-progress {
+  height: 8px !important;
+  background: rgba(255,255,255,.14) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+}
+
+#miniProgressFill {
+  background: linear-gradient(90deg, #00eaff, #8b5cf6, #e50914, #00eaff) !important;
+  background-size: 220% 100%;
+  animation: miniProgressFlow 3s linear infinite;
+}
+
+@keyframes miniProgressFlow {
+  from { background-position: 0% 50%; }
+  to { background-position: 220% 50%; }
+}
+
+.mini-controls button {
+  border-radius: 50% !important;
+  padding: 0 !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  display: grid !important;
+  place-items: center !important;
+  background: rgba(255,255,255,.09) !important;
+  backdrop-filter: blur(14px);
+}
+
+.mini-controls button:hover {
+  background: rgba(255,255,255,.16) !important;
+  transform: scale(1.08);
+}
+
+.mini-play {
+  border-radius: 50% !important;
+  box-shadow:
+    0 0 28px rgba(0,234,255,.45),
+    0 12px 28px rgba(0,0,0,.45) !important;
+}
+
+.mini-volume {
+  background: rgba(255,255,255,.08) !important;
+  backdrop-filter: blur(14px);
+}
+
+#miniVolumeSlider {
+  accent-color: #00eaff !important;
+}

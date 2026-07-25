@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hybrid Neon Player</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">HYBRID<span>NEON</span></div>
+
+    <div class="top-search">
+      <input id="searchInput" placeholder="Search YouTube..." />
+      <button id="searchBtn">🔍</button>
+    </div>
+
+    <div class="topbar-toggles">
+      <button id="toggleDashboard" title="Dashboard gizle/goster">▦</button>
+      <button id="togglePlaylist" title="Playlist gizle/goster">☷</button>
+    </div>
+
+    <div class="window-actions">
+      <button id="minimizeBtn">—</button>
+      <button id="maximizeBtn">□</button>
+      <button id="closeBtn">×</button>
+    </div>
+  </header>
+
+  <main class="netflix-layout">
+
+    <aside class="side-rail">
+      <div class="rail-logo">HN</div>
+
+      <button class="rail-btn active" data-page="home">
+        <span>⌂</span>
+        <b data-i18n="navHome">Home</b>
+      </button>
+
+      <button class="rail-btn" id="openFilesBtn">
+        <span>＋</span>
+        <b data-i18n="navAddMedia">Add Media</b>
+      </button>
+
+      <button class="rail-btn" data-page="online">
+        <span>⌕</span>
+        <b data-i18n="navSearch">Search</b>
+      </button>
+
+      <button class="rail-btn" data-page="library">
+        <span>▦</span>
+        <b data-i18n="navLibrary">Library</b>
+      </button>
+
+      <button class="rail-btn" data-page="favorites">
+        <span>★</span>
+        <b data-i18n="navFavorites">Favorites</b>
+      </button>
+
+      <div class="rail-spacer"></div>
+
+      <button class="rail-btn" data-page="settings">
+        <span>⚙</span>
+        <b data-i18n="navSettings">Settings</b>
+      </button>
+    </aside>
+
+    <section class="content">
+
+      <section class="hero">
+        <div id="bgBlur"></div>
+        <video id="player"></video>
+
+        <div class="audio-visualizer" id="audioVisualizer">
+          <div class="audio-orb"></div>
+
+          <div class="audio-card">
+            <div class="audio-cover" id="audioCover">♪</div>
+
+            <div class="audio-label" data-i18n="nowPlaying">NOW PLAYING</div>
+            <h2 id="audioTitle" data-i18n="noMedia">No media selected</h2>
+            <p id="audioSub" data-i18n="audioMode">Audio mode</p>
+
+            <div class="audio-wave">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-shade"></div>
+
+        <div class="hero-info">
+          <div class="eyebrow">Now Playing</div>
+          <h1 id="mediaTitle">No media selected</h1>
+          <p id="mediaDesc">Open local media or search YouTube.</p>
+
+          <div class="hero-buttons">
+            <button id="heroPlayBtn" class="hero-play">▶ Play</button>
+            <button id="toggleControlsBtn" class="hero-secondary">Controls</button>
+          </div>
+        </div>
+
+        <div class="center-play" id="centerPlayBtn">▶</div>
+
+  <div class="cinema-controls dense-cockpit" id="controlPanel">
+
+          <div class="cockpit-left">
+            <div class="cockpit-cover" id="cockpitCover">♪</div>
+            <div class="cockpit-meta">
+              <div class="cockpit-now" data-i18n="nowPlaying">NOW PLAYING</div>
+              <div class="cockpit-title" id="cockpitTitle">No media selected</div>
+              <div class="cockpit-sub" id="cockpitSub">Ready</div>
+            </div>
+          </div>
+
+          <div class="cockpit-center">
+            <div class="controls-top">
+              <span id="currentTime">00:00</span>
+              <div class="seekbar" id="seekbar">
+                <div id="seekFill"></div>
+              </div>
+              <span id="duration">00:00</span>
+            </div>
+
+            <div class="controls-bottom">
+              <button id="prevBtn" title="Previous">
+                <svg viewBox="0 0 24 24" width="18" height="18"><polygon points="12,5 3,12 12,19" fill="currentColor"/><rect x="14" y="5" width="3" height="14" rx="1" fill="currentColor"/></svg>
+              </button>
+              <button id="back10Btn" class="skip-btn" title="Back 10 seconds">
+                <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12.5 3C7.81 3 4 6.81 4 11.5S7.81 20 12.5 20c3.24 0 6.07-1.85 7.46-4.54l-1.99-1.12C16.84 16.38 14.8 18 12.5 18 8.92 18 6 15.08 6 11.5S8.92 5 12.5 5c1.86 0 3.55.79 4.73 2.04L14 10h7V3l-2.47 2.52C16.53 3.95 14.62 3 12.5 3z" fill="currentColor"/></svg>
+                <span class="skip-label">10</span>
+              </button>
+              <button id="playPauseBtn" class="big-play" title="Play/Pause">▶</button>
+              <button id="forward10Btn" class="skip-btn" title="Forward 10 seconds">
+                <svg viewBox="0 0 24 24" width="18" height="18"><path d="M11.5 3C16.19 3 20 6.81 20 11.5S16.19 20 11.5 20c-3.24 0-6.07-1.85-7.46-4.54l1.99-1.12C7.16 16.38 9.2 18 11.5 18c3.58 0 6.5-3.08 6.5-7S15.08 4 11.5 4C9.64 4 7.95 4.79 6.77 6.04L10 10H3V3l2.47 2.52C7.47 3.95 9.38 3 11.5 3z" fill="currentColor"/></svg>
+                <span class="skip-label">10</span>
+              </button>
+              <button id="nextBtn" title="Next">
+                <svg viewBox="0 0 24 24" width="18" height="18"><polygon points="12,5 21,12 12,19" fill="currentColor"/><rect x="7" y="5" width="3" height="14" rx="1" fill="currentColor"/></svg>
+              </button>
+              <button id="speedBtn" title="Speed">1x</button>
+            </div>
+          </div>
+
+          <div class="cockpit-right">
+            <div class="cockpit-tools">
+              <button id="muteBtn" title="Mute">🔊</button>
+              <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="1" />
+              <button id="fullscreenBtn" title="Fullscreen">⛶</button>
+            </div>
+
+            <div class="cockpit-eq" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+
+            <div class="cockpit-chips">
+              <span id="cockpitType">IDLE</span>
+              <span id="cockpitSpeed">1x</span>
+              <span id="cockpitVol">100%</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+<section class="netflix-rows">
+
+  <div class="row-block download-row-block">
+    <div class="download-row-head">
+      <h2 data-i18n="downloadManager">Download Manager</h2>
+
+      <div class="download-head-actions">
+        <button id="openDownloadsFolderBtn" title="İndirilenler klasörünü aç">📂</button>
+        <button id="closeDownloadManager" title="Paneli gizle">×</button>
+      </div>
+    </div>
+
+    <div class="row-scroll" id="downloadList"></div>
+  </div>
+
+  <div class="row-block">
+    <h2 data-i18n="continueWatching">Continue Watching</h2>
+    <div class="row-scroll" id="continueRow"></div>
+  </div>
+
+  <div class="row-block">
+    <h2 data-i18n="recentlyAdded">Recently Added</h2>
+    <div class="row-scroll" id="recentRow"></div>
+  </div>
+
+  <div class="row-block">
+    <h2 data-i18n="youtubeResults">YouTube Results</h2>
+    <div class="row-scroll" id="searchRow"></div>
+  </div>
+
+</section>
+
+<section class="online-results" id="onlineResults" style="display:none">
+  <div class="section-head">
+    <h2>Online Results</h2>
+    <span id="onlineResultCount">0 results</span>
+  </div>
+
+  <div class="online-grid" id="onlineGrid"></div>
+</section>
+
+    </section>
+
+    <aside class="right-playlist">
+      <div class="playlist-head">
+        <div>
+          <h2 data-i18n="library">Library</h2>
+          <span id="libraryCount">0 items</span>
+        </div>
+        <button id="clearPlaylistBtn" class="clear-btn">Clear</button>
+      </div>
+
+      <ul id="playlist" class="media-row"></ul>
+    </aside>
+
+  </main>
+
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel pro-settings">
+
+      <div class="settings-head">
+        <div>
+          <h2 data-i18n="settingsTitle">⚙ Settings</h2>
+          <p data-i18n="settingsDesc">Customize your Hybrid Neon Player experience.</p>
+        </div>
+        <button id="closeSettingsBtn">×</button>
+      </div>
+
+      <div class="settings-tabs">
+        <button class="settings-tab active" data-tab="general" data-i18n="tabGeneral">General</button>
+        <button class="settings-tab" data-tab="player" data-i18n="tabPlayer">Player</button>
+        <button class="settings-tab" data-tab="themes" data-i18n="tabThemes">Themes</button>
+        <button class="settings-tab" data-tab="library" data-i18n="tabLibrary">Library</button>
+        <button class="settings-tab" data-tab="update" data-i18n="tabUpdate">Update</button>
+        <button class="settings-tab" data-tab="about" data-i18n="tabAbout">About</button>
+      </div>
+
+      <div class="settings-body">
+
+        <div class="settings-page active" data-settings-page="general">
+          <label data-i18n="appName">App Name</label>
+          <input id="settingAppName" type="text" value="Hybrid Neon Player" />
+
+          <label data-i18n="defaultLanguage">Default Language</label>
+          <div class="custom-select" id="languageSelect">
+            <button type="button" class="custom-select-trigger" id="languageSelectTrigger">
+              <span id="languageSelectText">English</span>
+              <i>⌄</i>
+            </button>
+
+            <div class="custom-select-menu" id="languageSelectMenu">
+              <button type="button" data-lang-value="en">English</button>
+              <button type="button" data-lang-value="tr">Türkçe</button>
+              <button type="button" data-lang-value="de">Deutsch</button>
+              <button type="button" data-lang-value="es">Español</button>
+              <button type="button" data-lang-value="fr">Français</button>
+              <button type="button" data-lang-value="ru">Русский</button>
+              <button type="button" data-lang-value="ar">العربية</button>
+              <button type="button" data-lang-value="ja">日本語</button>
+              <button type="button" data-lang-value="zh">中文</button>
+            </div>
+          </div>
+          <input id="settingLanguage" type="hidden" value="en" />
+
+          <div class="setting-card">
+            <div>
+              <b data-i18n="glassEffect">Glass Effect</b>
+              <small data-i18n="glassEffectDesc">Enable blur and glassmorphism</small>
+            </div>
+            <input id="settingGlass" type="checkbox" checked />
+          </div>
+
+          <div class="setting-card">
+            <div>
+              <b data-i18n="remoteControl">Remote Control</b>
+              <small data-i18n="remoteControlDesc">Control playback from your phone</small>
+            </div>
+            <input id="settingRemote" type="checkbox" />
+          </div>
+          <div class="remote-info" id="remoteInfo" style="display:none;margin-top:10px;">
+            <div style="background:var(--surface);border:1px solid var(--panel-border);border-radius:12px;padding:16px;text-align:center;">
+              <div style="font-size:13px;color:var(--muted);margin-bottom:10px;" data-i18n="remoteScanQR">Aynı WiFi ağındaki telefondan açın</div>
+              <canvas id="remoteQR" width="180" height="180" style="border-radius:8px;background:#fff;padding:8px;margin-bottom:10px;"></canvas>
+              <a id="remoteUrl" href="#" target="_blank" style="display:block;font-size:13px;color:var(--accent);word-break:break-all;margin-bottom:10px;text-decoration:none;"></a>
+              <button id="copyRemoteUrl" style="padding:10px 24px;border-radius:10px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;">📋 <span data-i18n="copyLink">Linki Kopyala</span></button>
+              <div id="copyStatus" style="font-size:12px;color:var(--accent);margin-top:8px;opacity:0;transition:opacity .3s;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-page" data-settings-page="player">
+          <div class="setting-card">
+            <div>
+              <b data-i18n="autoHideInterface">Auto Hide Interface</b>
+              <small data-i18n="autoHideInterfaceDesc">Hide topbar, rail, playlist and controls while watching</small>
+            </div>
+            <input id="settingAutoHide" type="checkbox" checked />
+          </div>
+
+          <div class="setting-card">
+            <div>
+              <b data-i18n="autoplayNext">Autoplay Next</b>
+              <small data-i18n="autoplayNextDesc">Play next item automatically</small>
+            </div>
+            <input id="settingAutoplayNext" type="checkbox" checked />
+          </div>
+
+          <label data-i18n="defaultVolume">Default Volume</label>
+          <input id="settingDefaultVolume" type="range" min="0" max="100" value="80" />
+        </div>
+
+        <div class="settings-page" data-settings-page="themes">
+          <p class="themes-intro" data-i18n="themesDesc">Choose a full page theme for the entire application.</p>
+          <div class="theme-grid" id="themeGrid">
+            <div class="theme-card active" data-theme="dark-neon">
+              <div class="theme-preview dark-neon-preview">
+                <div class="tp-bar"></div><div class="tp-sidebar"></div><div class="tp-content"></div>
+              </div>
+              <span class="theme-label">Dark Neon</span>
+              <span class="theme-badge">Default</span>
+            </div>
+            <div class="theme-card" data-theme="midnight-blue">
+              <div class="theme-preview midnight-blue-preview">
+                <div class="tp-bar"></div><div class="tp-sidebar"></div><div class="tp-content"></div>
+              </div>
+              <span class="theme-label">Midnight Blue</span>
+            </div>
+            <div class="theme-card" data-theme="cyber-punk">
+              <div class="theme-preview cyber-punk-preview">
+                <div class="tp-bar"></div><div class="tp-sidebar"></div><div class="tp-content"></div>
+              </div>
+              <span class="theme-label">Cyber Punk</span>
+            </div>
+            <div class="theme-card" data-theme="aurora-green">
+              <div class="theme-preview aurora-green-preview">
+                <div class="tp-bar"></div><div class="tp-sidebar"></div><div class="tp-content"></div>
+              </div>
+              <span class="theme-label">Aurora Green</span>
+            </div>
+            <div class="theme-card" data-theme="sunset-red">
+              <div class="theme-preview sunset-red-preview">
+                <div class="tp-bar"></div><div class="tp-sidebar"></div><div class="tp-content"></div>
+              </div>
+              <span class="theme-label">Sunset Red</span>
+            </div>
+            <div class="theme-card" data-theme="pure-light">
+              <div class="theme-preview pure-light-preview">
+                <div class="tp-bar"></div><div class="tp-sidebar"></div><div class="tp-content"></div>
+              </div>
+              <span class="theme-label">Pure Light</span>
+            </div>
+          </div>
+
+          <div class="theme-extras">
+            <label data-i18n="themeGlow">Theme Glow</label>
+            <input id="settingGlow2" type="range" min="0" max="100" value="70" />
+
+            <label data-i18n="accentColor">Accent Color</label>
+            <div class="accent-palette" id="accentPalette">
+              <button class="accent-dot active" data-accent="red" style="--dot:#e50914" title="Netflix Red"></button>
+              <button class="accent-dot" data-accent="cyan" style="--dot:#00eaff" title="Cyber Cyan"></button>
+              <button class="accent-dot" data-accent="purple" style="--dot:#8b5cf6" title="Neon Purple"></button>
+              <button class="accent-dot" data-accent="pink" style="--dot:#ec4899" title="Hot Pink"></button>
+              <button class="accent-dot" data-accent="green" style="--dot:#10b981" title="Matrix Green"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-page" data-settings-page="update">
+          <div class="update-hero">
+            <div class="update-icon">⚡</div>
+            <h3 data-i18n="updateTitle">Hybrid Neon Player</h3>
+            <p class="update-version" id="currentVersion">Version 1.0.0</p>
+            <p class="update-status" id="updateStatus" data-i18n="upToDate">You are up to date!</p>
+            <button class="update-check-btn" id="checkUpdateBtn" data-i18n="checkUpdate">Check for Updates</button>
+          </div>
+          <div class="update-changelog">
+            <h4 data-i18n="changelog">Changelog</h4>
+            <div class="changelog-item">
+              <span class="cl-version">v1.0.0</span>
+              <span class="cl-date">2026-07-19</span>
+              <ul>
+                <li>Neon theme system with 6 full page themes</li>
+                <li>Custom neon toast notifications</li>
+                <li>Mini player with SVG controls</li>
+                <li>YouTube search & download support</li>
+                <li>Netflix-style dashboard with rows</li>
+                <li>Multi-language support (9 languages)</li>
+                <li>Phone remote control via WebSocket</li>
+                <li>GitHub-based auto update checking</li>
+                <li>RTL support for Arabic</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-page" data-settings-page="about">
+          <div class="about-hero">
+            <div class="about-logo">◈</div>
+            <h3>Hybrid Neon Player</h3>
+            <p class="about-tagline" data-i18n="aboutTagline">Next-gen media player with neon aesthetics</p>
+            <div class="about-badges">
+              <span class="about-badge">Electron 28</span>
+              <span class="about-badge">Node.js</span>
+              <span class="about-badge">yt-dlp</span>
+            </div>
+          </div>
+
+          <div class="about-section">
+            <h4 data-i18n="aboutFeatures">Features</h4>
+            <div class="about-grid">
+              <div class="about-feature">
+                <span class="af-icon">🎬</span>
+                <div><b>Video Playback</b><small>Local & online video support</small></div>
+              </div>
+              <div class="about-feature">
+                <span class="af-icon">🎵</span>
+                <div><b>Audio Playback</b><small>MP3, FLAC, WAV & more</small></div>
+              </div>
+              <div class="about-feature">
+                <span class="af-icon">🔍</span>
+                <div><b>YouTube Search</b><small>Search & stream from YouTube</small></div>
+              </div>
+              <div class="about-feature">
+                <span class="af-icon">⬇</span>
+                <div><b>Download</b><small>Save videos & audio locally</small></div>
+              </div>
+              <div class="about-feature">
+                <span class="af-icon">🎨</span>
+                <div><b>Neon Themes</b><small>6 themes, 5 accent colors</small></div>
+              </div>
+              <div class="about-feature">
+                <span class="af-icon">🌍</span>
+                <div><b>Multi Language</b><small>English, Turkish & more</small></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-section">
+            <h4 data-i18n="aboutCredits">Credits</h4>
+            <p class="about-credits-text" data-i18n="aboutCreditsText">Built with Electron, powered by yt-dlp for media downloading and youtube-search-api for search. Neon UI designed with CSS custom properties and glassmorphism.</p>
+          </div>
+
+          <div class="about-section">
+            <h4 data-i18n="aboutLinks">Links</h4>
+            <div class="about-links">
+              <a class="about-link" href="#" id="aboutGitHub">
+                <span>GitHub</span>
+                <span class="al-arrow">→</span>
+              </a>
+              <a class="about-link" href="#" id="aboutReport">
+                <span data-i18n="reportBug">Report a Bug</span>
+                <span class="al-arrow">→</span>
+              </a>
+              <a class="about-link" href="#" id="aboutLicense">
+                <span data-i18n="license">License</span>
+                <span class="al-arrow">→</span>
+              </a>
+            </div>
+          </div>
+
+          <p class="about-copyright">© 2026 Hybrid Neon Player. All rights reserved.</p>
+        </div>
+
+        <div class="settings-page" data-settings-page="library">
+          <div class="setting-card">
+            <div>
+              <b data-i18n="rememberLibrary">Remember Library</b>
+              <small data-i18n="rememberLibraryDesc">Keep playlist after restart</small>
+            </div>
+            <input id="settingRememberLibrary" type="checkbox" checked />
+          </div>
+
+          <div class="setting-card">
+            <div>
+              <b data-i18n="rightPlaylist">Right Playlist</b>
+              <small data-i18n="rightPlaylistDesc">Vertical library on right side</small>
+            </div>
+            <input type="checkbox" checked disabled />
+          </div>
+        </div>
+
+      </div>
+
+      <div class="settings-footer">
+        <button id="resetSettingsBtn" class="settings-ghost" data-i18n="reset">Reset</button>
+        <button id="saveSettingsBtn" class="settings-save" data-i18n="saveSettings">Save Settings</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="./qr.js"></script>
+  <script src="./renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+{
+  "name": "hybrid-neon-player",
+  "version": "1.0.0",
+  "description": "Local and online media player",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "build:portable": "electron-builder --win portable"
+  },
+  "author": "Halil",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "dependencies": {
+    "youtube-search-api": "^2.0.1",
+    "yt-dlp-wrap": "^2.3.12"
+  },
+  "build": {
+    "appId": "com.halil.hybridneonplayer",
+    "productName": "Hybrid Neon Player",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Hybrid Neon Player"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json",
+      "src/**/*",
+      "node_modules/**/*"
+    ],
+    "extraResources": [],
+    "directories": {
+      "output": "dist"
+    }
+  }
+}
