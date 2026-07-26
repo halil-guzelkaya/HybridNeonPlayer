@@ -24,10 +24,13 @@
     "appId": "com.halil.hybridneonplayer",
     "productName": "Hybrid Neon Player",
     "win": {
+      "icon": "assets/icon.ico",
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
@@ -43,6 +46,7 @@
       "preload.js",
       "package.json",
       "src/**/*",
+      "assets/**/*",
       "node_modules/**/*"
     ],
     "extraResources": [],
