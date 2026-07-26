@@ -813,3 +813,59 @@ ipcMain.handle("check-for-update", async () => {
     return { hasUpdate: false, error: msg, currentVersion: APP_VERSION };
   }
 });
+
+/* ===== DOWNLOAD UPDATE ===== */
+
+ipcMain.handle("download-update", async (_event, url) => {
+  if (!url) return { error: "No URL" };
+
+  const updateDir = path.join(app.getPath("downloads"), "HybridNeonPlayer-Update");
+  if (!fs.existsSync(updateDir)) fs.mkdirSync(updateDir, { recursive: true });
+
+  const fileName = url.split("/").pop() || "update.exe";
+  const destPath = path.join(updateDir, fileName);
+
+  try {
+    await new Promise((resolve, reject) => {
+      const file = fs.createWriteStream(destPath);
+
+      const doRequest = (downloadUrl) => {
+        const proto = downloadUrl.startsWith("https") ? https : http;
+        proto.get(downloadUrl, (res) => {
+          if (res.statusCode === 302 || res.statusCode === 301) {
+            doRequest(res.headers.location);
+            return;
+          }
+          if (res.statusCode >= 400) {
+            reject(new Error("HTTP " + res.statusCode));
+            return;
+          }
+          const total = parseInt(res.headers["content-length"] || "0", 10);
+          let downloaded = 0;
+          res.on("data", (chunk) => {
+            downloaded += chunk.length;
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              const pct = total > 0 ? Math.round((downloaded / total) * 100) : -1;
+              mainWindow.webContents.send("update-download-progress", { pct, downloaded, total });
+            }
+          });
+          res.pipe(file);
+          file.on("finish", () => { file.close(resolve); });
+        }).on("error", (err) => { fs.unlink(destPath, () => {}); reject(err); });
+      };
+
+      doRequest(url);
+    });
+
+    return { success: true, path: destPath };
+  } catch (err) {
+    return { error: err.message };
+  }
+});
+
+ipcMain.handle("install-update", (_event, filePath) => {
+  if (!filePath || !fs.existsSync(filePath)) return { error: "File not found" };
+  shell.openExternal(filePath);
+  app.quit();
+  return { success: true };
+});

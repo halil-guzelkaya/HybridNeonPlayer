@@ -119,6 +119,10 @@ const translations = {
     updateError: "Update check failed",
     openGitHub: "Open GitHub",
     noRelease: "No releases available yet",
+    downloadInstall: "Download & Install",
+    downloading: "Downloading",
+    downloadFailed: "Download failed",
+    installing: "Installing...",
     changelog: "Changelog",
     aboutTagline: "Next-gen media player with neon aesthetics",
     aboutFeatures: "Features",
@@ -228,6 +232,10 @@ const translations = {
     updateError: "Güncelleme kontrolü başarısız",
     openGitHub: "GitHub'ı Aç",
     noRelease: "Henüz yayınlanmamış",
+    downloadInstall: "İndir ve Yükle",
+    downloading: "İndiriliyor",
+    downloadFailed: "İndirme başarısız",
+    installing: "Yükleniyor...",
     changelog: "Değişiklik Kaydı",
     aboutTagline: "Neon estetiğiyle yeni nesil medya oynatıcı",
     aboutFeatures: "Özellikler",
@@ -337,6 +345,10 @@ const translations = {
     updateError: "Update-Überprüfung fehlgeschlagen",
     openGitHub: "GitHub öffnen",
     noRelease: "Noch keine Releases verfügbar",
+    downloadInstall: "Herunterladen & Installieren",
+    downloading: "Herunterladen",
+    downloadFailed: "Download fehlgeschlagen",
+    installing: "Installiere...",
     changelog: "Änderungsprotokoll",
     aboutTagline: "Medienplayer der nächsten Generation mit Neon-Ästhetik",
     aboutFeatures: "Funktionen",
@@ -446,6 +458,10 @@ const translations = {
     updateError: "Error al buscar actualizaciones",
     openGitHub: "Abrir GitHub",
     noRelease: "No hay versiones disponibles aún",
+    downloadInstall: "Descargar e instalar",
+    downloading: "Descargando",
+    downloadFailed: "Error de descarga",
+    installing: "Instalando...",
     changelog: "Registro de cambios",
     aboutTagline: "Reproductor de medios de nueva generación con estética neon",
     aboutFeatures: "Características",
@@ -555,6 +571,10 @@ const translations = {
     updateError: "Échec de la vérification",
     openGitHub: "Ouvrir GitHub",
     noRelease: "Aucune version disponible pour le moment",
+    downloadInstall: "Télécharger et installer",
+    downloading: "Téléchargement",
+    downloadFailed: "Échec du téléchargement",
+    installing: "Installation...",
     changelog: "Journal des modifications",
     aboutTagline: "Lecteur média nouvelle génération avec esthétique néon",
     aboutFeatures: "Fonctionnalités",
@@ -664,6 +684,10 @@ const translations = {
     updateError: "Ошибка проверки обновлений",
     openGitHub: "Открыть GitHub",
     noRelease: "Пока нет доступных релизов",
+    downloadInstall: "Скачать и установить",
+    downloading: "Загрузка",
+    downloadFailed: "Ошибка загрузки",
+    installing: "Установка...",
     changelog: "Список изменений",
     aboutTagline: "Медиаплеер нового поколения с неоновой эстетикой",
     aboutFeatures: "Возможности",
@@ -773,6 +797,10 @@ const translations = {
     updateError: "فشل التحقق من التحديث",
     openGitHub: "فتح GitHub",
     noRelease: "لا توجد إصدارات متاحة بعد",
+    downloadInstall: "تنزيل وتثبيت",
+    downloading: "جارٍ التنزيل",
+    downloadFailed: "فشل التنزيل",
+    installing: "جارٍ التثبيت...",
     changelog: "سجل التغييرات",
     aboutTagline: "مشغل وسائط من الجيل التالي بجمالي نيون",
     aboutFeatures: "الميزات",
@@ -882,6 +910,10 @@ const translations = {
     updateError: "アップデート確認に失敗しました",
     openGitHub: "GitHubを開く",
     noRelease: "リリースはまだありません",
+    downloadInstall: "ダウンロードしてインストール",
+    downloading: "ダウンロード中",
+    downloadFailed: "ダウンロード失敗",
+    installing: "インストール中...",
     changelog: "変更履歴",
     aboutTagline: "ネオン美学の次世代メディアプレーヤー",
     aboutFeatures: "機能",
@@ -991,6 +1023,10 @@ const translations = {
     updateError: "检查更新失败",
     openGitHub: "打开 GitHub",
     noRelease: "暂无可用版本",
+    downloadInstall: "下载并安装",
+    downloading: "下载中",
+    downloadFailed: "下载失败",
+    installing: "安装中...",
     changelog: "更新日志",
     aboutTagline: "具有霓虹美学的下一代媒体播放器",
     aboutFeatures: "功能",
@@ -3584,12 +3620,32 @@ document.querySelectorAll(".row-scroll").forEach((row) => {
   const checkUpdateBtn = document.getElementById("checkUpdateBtn");
   const updateStatusEl = document.getElementById("updateStatus");
   const currentVersionEl = document.getElementById("currentVersion");
+  let updateProgressBar = document.getElementById("updateProgressBar");
+
+  if (!updateProgressBar && checkUpdateBtn) {
+    updateProgressBar = document.createElement("div");
+    updateProgressBar.id = "updateProgressBar";
+    updateProgressBar.style.cssText = "width:100%;max-width:340px;height:6px;background:rgba(255,255,255,.08);border-radius:3px;margin:12px auto 0;display:none;overflow:hidden;";
+    updateProgressBar.innerHTML = '<div style="height:100%;width:0%;background:var(--accent,#00e5ff);border-radius:3px;transition:width .3s;box-shadow:0 0 8px rgba(0,229,255,.4)"></div>';
+    checkUpdateBtn.parentNode.insertBefore(updateProgressBar, checkUpdateBtn.nextSibling);
+  }
+
+  if (window.api?.onUpdateDownloadProgress && updateProgressBar) {
+    window.api.onUpdateDownloadProgress((data) => {
+      if (data.pct >= 0) {
+        updateProgressBar.style.display = "block";
+        updateProgressBar.querySelector("div").style.width = data.pct + "%";
+        updateStatusEl.textContent = (t("downloading") || "Downloading") + "... " + data.pct + "%";
+      }
+    });
+  }
 
   if (checkUpdateBtn && window.api?.checkForUpdate) {
     checkUpdateBtn.onclick = async () => {
       checkUpdateBtn.disabled = true;
       checkUpdateBtn.textContent = "...";
       updateStatusEl.textContent = t("checking") || "Checking...";
+      if (updateProgressBar) updateProgressBar.style.display = "none";
 
       try {
         const info = await window.api.checkForUpdate();
@@ -3610,11 +3666,46 @@ document.querySelectorAll(".row-scroll").forEach((row) => {
           if (info.hasUpdate) {
             updateStatusEl.textContent = (t("updateAvailable") || "Update available") + ": v" + info.latestVersion;
             updateStatusEl.style.color = "#00e5ff";
-            checkUpdateBtn.textContent = t("openGitHub") || "Open GitHub";
-            checkUpdateBtn.disabled = false;
-            checkUpdateBtn.onclick = () => {
-              if (info.url) window.api?.openURL ? window.api.openURL(info.url) : window.open(info.url, "_blank");
-            };
+
+            if (info.assetUrl) {
+              checkUpdateBtn.textContent = t("downloadInstall") || "Download & Install";
+              checkUpdateBtn.disabled = false;
+              checkUpdateBtn.onclick = async () => {
+                checkUpdateBtn.disabled = true;
+                checkUpdateBtn.textContent = "...";
+                updateStatusEl.textContent = (t("downloading") || "Downloading") + "...";
+
+                try {
+                  const result = await window.api.downloadUpdate(info.assetUrl);
+                  if (result.error) {
+                    updateStatusEl.textContent = (t("downloadFailed") || "Download failed") + ": " + result.error;
+                    updateStatusEl.style.color = "#ff6b6b";
+                    checkUpdateBtn.disabled = false;
+                    checkUpdateBtn.textContent = t("downloadInstall") || "Download & Install";
+                  } else if (result.success) {
+                    updateStatusEl.textContent = t("installing") || "Installing...";
+                    updateStatusEl.style.color = "#d500f9";
+                    checkUpdateBtn.textContent = t("installing") || "Installing...";
+                    if (updateProgressBar) {
+                      updateProgressBar.style.display = "block";
+                      updateProgressBar.querySelector("div").style.width = "100%";
+                    }
+                    await window.api.installUpdate(result.path);
+                  }
+                } catch (e) {
+                  updateStatusEl.textContent = (t("downloadFailed") || "Download failed");
+                  updateStatusEl.style.color = "#ff6b6b";
+                  checkUpdateBtn.disabled = false;
+                  checkUpdateBtn.textContent = t("downloadInstall") || "Download & Install";
+                }
+              };
+            } else {
+              checkUpdateBtn.textContent = t("openGitHub") || "Open GitHub";
+              checkUpdateBtn.disabled = false;
+              checkUpdateBtn.onclick = () => {
+                if (info.url) window.api?.openURL ? window.api.openURL(info.url) : window.open(info.url, "_blank");
+              };
+            }
 
             let changelogDiv = document.querySelector(".update-changelog");
             if (changelogDiv && info.body) {

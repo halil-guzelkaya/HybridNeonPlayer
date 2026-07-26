@@ -30,5 +30,9 @@ contextBridge.exposeInMainWorld("api", {
   onRemoteCommand: (callback) => ipcRenderer.on("remote-command", (_e, command) => callback(command)),
   onRemoteSync: (callback) => ipcRenderer.on("remote-sync", () => callback()),
   checkForUpdate: () => ipcRenderer.invoke("check-for-update"),
+  downloadUpdate: (url) => ipcRenderer.invoke("download-update", url),
+  installUpdate: (filePath) => ipcRenderer.invoke("install-update", filePath),
+  onUpdateDownloadProgress: (callback) =>
+    ipcRenderer.on("update-download-progress", (_e, data) => callback(data)),
   openURL: (url) => ipcRenderer.invoke("open-external-url", url)
 });
